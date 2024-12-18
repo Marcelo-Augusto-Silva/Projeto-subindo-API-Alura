@@ -1,0 +1,40 @@
+- hosts: terraform-ansible
+  tasks:
+  - name: Instalando o Node JS
+    apt:
+      pkg:
+      - python3
+      - python3-pip
+      - nodejs
+      - npm
+      update_cache: yes
+    become: yes
+
+  - name: Git Clone
+    ansible.builtin.git: # Fazendo o Git Clone
+      repo: https://github.com/alura-cursos/api-alurabooks # link do repositório 
+      dest: /home/ubuntu/projeto # Destino do projeto
+      force: yes
+
+  - name: Instalando dependencias 
+    community.general.npm:
+      path: /home/ubuntu/projeto
+
+  - name: Alterando o arquivo Server.js e adicionando os hosts
+    replace:
+      path: /home/ubuntu/projeto/server.js
+      # Essa Regex irá buscar pelo trrecho server.listen e depois ira substituir 
+      regexp: 'server\.listen\(\d+, \(\) => \{\s*console\.log\(\"API disponível em http:\/\/localhost:\d+\"\)\s*\}\)'
+      replace: 'server.listen(8000, "0.0.0.0",() => {
+  console.log("API disponível em http://localhost:8000")
+})'
+    
+  - name: iniciando o servidor 
+    args:
+      chdir: /home/ubuntu/projeto
+    #shell: 'nohup node /home/ubuntu/projeto/server.js &'
+    shell: 'nohup node /home/ubuntu/projeto/server.js > /home/ubuntu/projeto/server.log 2>&1 & sleep 2'
+
+            
+
+  
